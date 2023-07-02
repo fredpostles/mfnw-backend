@@ -11,11 +11,11 @@ const router = express.Router();
 // save recipe
 router.post("/", async (req, res) => {
   const {
-    recipeId,
-    recipeTitle,
+    id: recipeId,
+    title: recipeTitle,
     readyInMinutes,
     servings,
-    recipeImage,
+    image: recipeImage,
     extendedIngredients,
     analyzedInstructions,
   } = req.body;
@@ -46,6 +46,8 @@ router.post("/", async (req, res) => {
         userId,
       ];
 
+      console.log("savedRecipeParams", savedRecipeParams);
+
       // send to the DB
       const savedRecipeResults = await req.asyncMySQL(
         savedRecipeQuery,
@@ -71,7 +73,7 @@ router.post("/", async (req, res) => {
 });
 
 // get all saved recipes
-router.get("/:id", async (req, res) => {
+router.get("/", async (req, res) => {
   const { token } = req.headers;
 
   const savedRecipeQuery = getAllSavedRecipes();
@@ -89,17 +91,27 @@ router.get("/:id", async (req, res) => {
     });
     return;
   }
-  if (savedRecipeResults.length === 0) {
-    res.status(404).send({ error: "No results returned" });
+
+  // Parse stringified JSON fields back into JSON objects
+  const parsedResults = savedRecipeResults.map((recipe) => ({
+    ...recipe,
+    extendedIngredients: JSON.parse(recipe.extendedIngredients),
+    analyzedInstructions: JSON.parse(recipe.analyzedInstructions),
+  }));
+
+  if (parsedResults.length === 0) {
+    res.status(404).send({ error: "No saved recipes" });
     return;
   }
-  res
-    .status(200)
-    .send({ message: "Success! Saved recipes retrieved", savedRecipeResults });
+
+  res.status(200).send({
+    message: "Success! Saved recipes retrieved",
+    savedRecipeResults: parsedResults,
+  });
 });
 
 // get saved recipe by ID
-router.get("/recipes/:id", async (req, res) => {
+router.get("/:id", async (req, res) => {
   const { token } = req.headers;
   const { id } = req.params;
 

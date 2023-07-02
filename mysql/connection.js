@@ -24,10 +24,7 @@ async function asyncMySQL(query, variables) {
         console.log("variables in asyncMySQL function:", variables);
         connection.release();
         if (error) {
-          console.log(
-            "Connection to server failed; check server is running!",
-            error
-          );
+          console.log("Connection to server failed:", error);
           reject("mySQL error:", error);
         } else {
           console.log("Query successful:", results);

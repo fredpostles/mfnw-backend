@@ -9,12 +9,13 @@ router.post("/", async (req, res) => {
 
   // check that username and password match details on system
   if (!email || !password) {
-    res.send({ status: 0, error: "Invalid input data" });
-    return;
+    return res.status(404).send({ error: "Email and password are required." });
   }
 
+  // hash password with salt
   password = sha256(process.env.SALT + password);
 
+  // check user exists with given email/password combo
   const query = checkCreds();
 
   const params = [email, password];
@@ -23,7 +24,7 @@ router.post("/", async (req, res) => {
 
   // if credentials don't match, return
   if (results.length === 0) {
-    res.send({ status: 0, error: "Incorrect email and/or password" });
+    res.status(401).send({ error: "Invalid login credentials" });
     return;
   }
 
@@ -35,8 +36,7 @@ router.post("/", async (req, res) => {
 
   await req.asyncMySQL(secondQuery, secondParams);
 
-  res.send({
-    status: 1,
+  res.status(200).send({
     message: "User successfully logged in",
     token: token,
   });

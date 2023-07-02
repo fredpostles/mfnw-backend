@@ -11,7 +11,7 @@ router.delete("/", async (req, res) => {
 
   await req.asyncMySQL(query, params);
 
-  res.status(200).send({
+  res.status(204).send({
     message: "User successfully logged off!",
   });
 });

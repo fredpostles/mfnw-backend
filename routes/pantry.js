@@ -11,14 +11,14 @@ const router = express.Router();
 
 // create new pantry item
 router.post("/", async (req, res) => {
-  const { itemName, image } = req.body;
+  const { name, image } = req.body;
   const { userId } = req;
 
   try {
-    if (itemName && image) {
+    if (name && image) {
       const pantryQuery = createPantryItem();
 
-      const pantryParams = [itemName, image, userId];
+      const pantryParams = [name, image, userId];
 
       const pantryResults = await req.asyncMySQL(pantryQuery, pantryParams);
 
@@ -58,9 +58,28 @@ router.get("/items", async (req, res) => {
     return;
   }
 
-  res
-    .status(200)
-    .send({ message: "Success! Pantry items retrieved:", pantryResults });
+  // Restructure the results to include the nested quantity object
+  const restructuredResults = pantryResults.map((item) => {
+    const { quantity_amount, quantity_units, ...rest } = item;
+
+    const quantity =
+      quantity_amount || quantity_units
+        ? {
+            amount: quantity_amount,
+            units: quantity_units,
+          }
+        : null;
+
+    return {
+      ...rest,
+      quantity,
+    };
+  });
+
+  res.status(200).send({
+    message: "Success! Pantry items retrieved:",
+    pantryResults: restructuredResults,
+  });
 });
 
 // get pantry item by ID
@@ -108,7 +127,7 @@ router.put("/item/:id", async (req, res) => {
   const { id } = req.params;
 
   // check the item exists and belongs to the user
-  const itemQuery = getPantryItemId();
+  const itemQuery = getPantryItem();
   const itemParams = [id, token];
   const item = await req.asyncMySQL(itemQuery, itemParams);
 
@@ -142,7 +161,7 @@ router.put("/item/:id", async (req, res) => {
 });
 
 // delete pantry item w/ id
-router.delete("/:id", async (req, res) => {
+router.delete("/item/:id", async (req, res) => {
   const { token } = req.headers;
   const { id } = req.params;
 

@@ -20,7 +20,7 @@ const queries = {
                             WHERE token = ?;`;
   },
 
-  getUserID: (token) => {
+  getUserID: () => {
     return `SELECT users.id FROM users 
               JOIN logins ON users.id = logins.user_id          
                 WHERE logins.token = ?`;
@@ -48,6 +48,8 @@ const queries = {
                 FROM users
                   LEFT JOIN logins ON users.id = logins.user_id
                     LEFT JOIN preferences ON users.id = preferences.user_id
+                      LEFT JOIN pantry_items ON users.id = pantry_items.user_id
+                        LEFT JOIN saved_recipes ON users.id = saved_recipes.user_id
                             WHERE users.id = ?`;
   },
   checkCreds: () => {
@@ -76,7 +78,7 @@ const queries = {
   },
 
   createPantryItem: () => {
-    return `INSERT INTO pantry_items (item_name, image, user_id)
+    return `INSERT INTO pantry_items (name, image, user_id)
               VALUES (?, ?, ?);`;
   },
 
@@ -99,7 +101,8 @@ const queries = {
   },
 
   getAllPantryItems: () => {
-    return `SELECT pantry_items.* FROM pantry_items
+    return `SELECT pantry_items.*, pantry_items.quantity_amount AS 'quantity.amount', pantry_items.quantity_units AS 'quantity.units'
+            FROM pantry_items
               JOIN users ON users.id = pantry_items.user_id
                 JOIN logins ON users.id = logins.user_id          
                   WHERE logins.token = ?;`;
@@ -127,10 +130,11 @@ const queries = {
   },
 
   getAllSavedRecipes: () => {
-    return `SELECT saved_recipes.* FROM saved_recipes
-              JOIN users ON users.id = saved_recipes.user_id
-                JOIN logins ON users.id = logins.user_id          
-                  WHERE logins.token = ?;`;
+    return `SELECT saved_recipes.recipe_id AS 'id', saved_recipes.recipe_title AS 'title', saved_recipes.ready_in_minutes AS 'readyInMinutes', saved_recipes.servings, saved_recipes.recipe_image AS 'image', saved_recipes.extended_ingredients AS 'extendedIngredients', saved_recipes.analyzed_instructions AS 'analyzedInstructions'
+              FROM saved_recipes
+                JOIN users ON users.id = saved_recipes.user_id
+                  JOIN logins ON users.id = logins.user_id          
+                    WHERE logins.token = ?;`;
   },
 
   checkSavedRecipe: () => {

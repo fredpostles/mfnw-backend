@@ -2,6 +2,7 @@ const { checkToken } = require("../mysql/queries");
 
 module.exports.checkToken = async (req, res, next) => {
   const { token } = req.headers;
+  console.log("token in checkToken", token);
 
   if (!token) {
     res.status(401).send({ error: "Token not set" });
@@ -14,7 +15,8 @@ module.exports.checkToken = async (req, res, next) => {
 
   const results = await req.asyncMySQL(query, params);
 
-  console.log("Results in checkToken", results[0]);
+  console.log("Results in checkToken", results);
+  console.log("Results[0] in checkToken", results[0]);
 
   if (results.length) {
     req.userId = results[0].id; // attach user ID to request

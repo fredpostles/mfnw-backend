@@ -28,10 +28,11 @@ router.get("/", async (req, res) => {
     name: userResults[0].name,
     surname: userResults[0].surname,
     email: userResults[0].email,
+    // if I wanted to pass down password, do it here
     preferences: {
-      vegan: userResults[0].vegan === 1 ? "true" : "false",
-      vegetarian: userResults[0].vegetarian === 1 ? "true" : "false",
-      gluten_free: userResults[0].gluten_free === 1 ? "true" : "false",
+      vegan: userResults[0].vegan === 1 ? true : false,
+      vegetarian: userResults[0].vegetarian === 1 ? true : false,
+      glutenFree: userResults[0].gluten_free === 1 ? true : false,
     },
   };
 
@@ -42,6 +43,8 @@ router.get("/", async (req, res) => {
 router.put("/", async (req, res) => {
   let { email, password, name, surname, preferences } = req.body;
   const { token } = req.headers;
+
+  console.log("Request body in backend", req.body);
 
   let params = [];
 
@@ -75,16 +78,24 @@ router.put("/", async (req, res) => {
   }
 
   if (preferences && typeof preferences === "object") {
+    console.log("vegan in update user backend:", preferences.vegan);
+    console.log("vegetarian in update user backend:", preferences.vegetarian);
+    console.log("glutenFree in update user backend:", preferences.glutenFree);
+
     // columns in prefs table in DB
     const prefColumns = ["vegan", "vegetarian", "gluten_free"];
 
     // convert bool into tinyint for DB
-    const vegan = preferences.vegan === "true" ? 1 : 0;
-    const vegetarian = preferences.vegetarian === "true" ? 1 : 0;
-    const glutenFree = preferences.glutenFree === "true" ? 1 : 0;
+    const convertedVegan = preferences.vegan === true ? 1 : 0;
+    const convertedVegetarian = preferences.vegetarian === true ? 1 : 0;
+    const convertedGlutenFree = preferences.glutenFree === true ? 1 : 0;
 
     // set values
-    const prefValues = [vegan, vegetarian, glutenFree];
+    const prefValues = [
+      convertedVegan,
+      convertedVegetarian,
+      convertedGlutenFree,
+    ];
 
     // send columns to SQL query
     const prefQuery = updatePreferences(prefColumns);
@@ -93,6 +104,8 @@ router.put("/", async (req, res) => {
     const prefParams = [...prefValues, token];
 
     await req.asyncMySQL(prefQuery, prefParams);
+  } else {
+    console.log("Error in request body - preferences");
   }
 
   res.status(200).send({ message: "User successfully updated" });
