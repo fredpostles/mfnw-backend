@@ -125,12 +125,12 @@ const queries = {
   },
 
   createSavedRecipe: () => {
-    return `INSERT INTO saved_recipes (recipe_id, recipe_title, ready_in_minutes, servings, recipe_image,	extended_ingredients,	analyzed_instructions, user_id)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?);`;
+    return `INSERT INTO saved_recipes (recipe_id, recipe_title, ready_in_minutes, servings, diets, recipe_image,	extended_ingredients,	analyzed_instructions, user_id)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`;
   },
 
   getAllSavedRecipes: () => {
-    return `SELECT saved_recipes.recipe_id AS 'id', saved_recipes.recipe_title AS 'title', saved_recipes.ready_in_minutes AS 'readyInMinutes', saved_recipes.servings, saved_recipes.recipe_image AS 'image', saved_recipes.extended_ingredients AS 'extendedIngredients', saved_recipes.analyzed_instructions AS 'analyzedInstructions'
+    return `SELECT saved_recipes.recipe_id AS 'id', saved_recipes.recipe_title AS 'title', saved_recipes.ready_in_minutes AS 'readyInMinutes', saved_recipes.servings, saved_recipes.diets, saved_recipes.recipe_image AS 'image', saved_recipes.extended_ingredients AS 'extendedIngredients', saved_recipes.analyzed_instructions AS 'analyzedInstructions'
               FROM saved_recipes
                 JOIN users ON users.id = saved_recipes.user_id
                   JOIN logins ON users.id = logins.user_id          

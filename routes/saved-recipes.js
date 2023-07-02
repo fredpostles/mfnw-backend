@@ -10,16 +10,20 @@ const router = express.Router();
 
 // save recipe
 router.post("/", async (req, res) => {
+  console.log(">>", req.body);
   const {
     id: recipeId,
     title: recipeTitle,
     readyInMinutes,
     servings,
+    diets,
     image: recipeImage,
     extendedIngredients,
     analyzedInstructions,
   } = req.body;
   const { userId } = req;
+
+  console.log("diets:", diets);
 
   // check everything is being sent in
   if (
@@ -27,6 +31,7 @@ router.post("/", async (req, res) => {
     recipeTitle &&
     readyInMinutes &&
     servings &&
+    diets &&
     recipeImage &&
     extendedIngredients &&
     analyzedInstructions
@@ -40,6 +45,7 @@ router.post("/", async (req, res) => {
         recipeTitle,
         readyInMinutes,
         servings,
+        JSON.stringify(diets),
         recipeImage,
         JSON.stringify(extendedIngredients),
         JSON.stringify(analyzedInstructions),
@@ -85,6 +91,8 @@ router.get("/", async (req, res) => {
     savedRecipeParams
   );
 
+  console.log(">>", savedRecipeResults);
+
   if (savedRecipeResults.affectedRows === 0) {
     res.status(404).send({
       error: "Could not retrieve user's saved recipes",
@@ -93,11 +101,15 @@ router.get("/", async (req, res) => {
   }
 
   // Parse stringified JSON fields back into JSON objects
-  const parsedResults = savedRecipeResults.map((recipe) => ({
-    ...recipe,
-    extendedIngredients: JSON.parse(recipe.extendedIngredients),
-    analyzedInstructions: JSON.parse(recipe.analyzedInstructions),
-  }));
+  const parsedResults = savedRecipeResults.map((recipe) => {
+    const parsedDiets = recipe.diets ? JSON.parse(recipe.diets) : [];
+    return {
+      ...recipe,
+      diets: parsedDiets,
+      extendedIngredients: JSON.parse(recipe.extendedIngredients),
+      analyzedInstructions: JSON.parse(recipe.analyzedInstructions),
+    };
+  });
 
   if (parsedResults.length === 0) {
     res.status(404).send({ error: "No saved recipes" });
