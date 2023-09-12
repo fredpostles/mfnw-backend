@@ -7,8 +7,22 @@ const app = express();
 const { addToLog } = require("./middleware/logging");
 const { checkToken } = require("./middleware/auth");
 
+// Allow requests from specific origins
+const allowedOrigins = [
+  "http://localhost:3000", // For local development
+  "https://makefoodnotwaste.co.uk", // Production domain
+  "http://makefoodnotwaste.co.uk",
+  "https://api.makefoodnotwaste.co.uk", // API subdomain
+  "http://api.makefoodnotwaste.co.uk"
+];
+
 // cors middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true, // Allow cookies and credentials to be sent cross-origin
+  })
+);
 
 // check the db status
 checkDBStatus(asyncMySQL);
