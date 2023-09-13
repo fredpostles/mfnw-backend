@@ -3,9 +3,16 @@ const asyncMySQL = require("./mysql/connection");
 const checkDBStatus = require("./tests/sql");
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const app = express();
 const { addToLog } = require("./middleware/logging");
 const { checkToken } = require("./middleware/auth");
+
+// Define the build directory where your React app is built
+const buildDirectory = path.join(__dirname, "build");
+
+// Serve static files from the build directory
+app.use(express.static(buildDirectory));
 
 // Allow requests from specific origins
 const allowedOrigins = [
@@ -27,8 +34,10 @@ app.use(
 // check the db status
 checkDBStatus(asyncMySQL);
 
+// logging middleware
+app.use(addToLog);
+
 // (global) middleware
-app.use(express.static("public")); // handle static files such as images
 app.use(express.json());
 
 // utility middleware, attaching SQL connection to req
@@ -36,9 +45,6 @@ app.use((req, res, next) => {
   req.asyncMySQL = asyncMySQL;
   next();
 });
-
-// logging middleware
-app.use(addToLog);
 
 //ROUTES
 // no auth needed
@@ -51,7 +57,12 @@ app.use("/users", checkToken, require("./routes/users"));
 app.use("/pantry", checkToken, require("./routes/pantry"));
 app.use("/saved-recipes", checkToken, require("./routes/saved-recipes"));
 
-const port = process.env.port || 6005;
+// Catch-all route to handle unmatched routes
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(buildDirectory, "index.html"));
+});
+
+const port = process.env.PORT || 6005;
 
 app.listen(port, () => {
   console.log(`The server is running on port ${port}.`);
